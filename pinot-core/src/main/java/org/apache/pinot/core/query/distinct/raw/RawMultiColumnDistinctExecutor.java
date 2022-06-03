@@ -18,6 +18,7 @@
  */
 package org.apache.pinot.core.query.distinct.raw;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.pinot.common.request.context.ExpressionContext;
@@ -38,11 +39,13 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
  */
 public class RawMultiColumnDistinctExecutor implements DistinctExecutor {
   private final List<ExpressionContext> _expressions;
+  private final List<Boolean> _isSingleValues;
   private final DistinctTable _distinctTable;
 
   public RawMultiColumnDistinctExecutor(List<ExpressionContext> expressions, List<DataType> dataTypes,
       @Nullable List<OrderByExpressionContext> orderByExpressions, int limit) {
     _expressions = expressions;
+    _isSingleValues = new ArrayList<>(10) { };
 
     int numExpressions = expressions.size();
     String[] columnNames = new String[numExpressions];

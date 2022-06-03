@@ -77,21 +77,28 @@ public class DistinctExecutorFactory {
       // Single column
       ExpressionContext expression = expressions.get(0);
       TransformResultMetadata expressionMetadata = transformOperator.getResultMetadata(expression);
+      boolean isSingleValue = expressionMetadata.isSingleValue();
       // TODO: Support MV expression
-      Preconditions.checkArgument(expressionMetadata.isSingleValue(), "DISTINCT cannot be applied to MV expression: %s",
-          expression);
+// Preconditions.checkArgument(expressionMetadata.isSingleValue(),
+// "bowenzhu DISTINCT cannot be applied to MV expression: %s",
+// expression);
       DataType dataType = expressionMetadata.getDataType();
       Dictionary dictionary = transformOperator.getDictionary(expression);
       if (dictionary != null) {
+        Preconditions.checkArgument(
+            !expression.toString().equals("DivLongestGTimes") && !expression.toString().equals("DivTailNums"),
+              "BowenZhu - DISTINCT cannot be applied to MV expression: %s", expression);
+
         // Dictionary based
-        return new DictionaryBasedSingleColumnDistinctOnlyExecutor(expression, dictionary, dataType, limit);
+        return new DictionaryBasedSingleColumnDistinctOnlyExecutor(expression,
+            isSingleValue, dictionary, dataType, limit);
       } else {
         // Raw value based
         switch (dataType.getStoredType()) {
           case INT:
             return new RawIntSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
           case LONG:
-            return new RawLongSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
+            return new RawLongSingleColumnDistinctOnlyExecutor(expression, isSingleValue, dataType, limit);
           case FLOAT:
             return new RawFloatSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
           case DOUBLE:
@@ -99,7 +106,7 @@ public class DistinctExecutorFactory {
           case BIG_DECIMAL:
             return new RawBigDecimalSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
           case STRING:
-            return new RawStringSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
+            return new RawStringSingleColumnDistinctOnlyExecutor(expression, isSingleValue, dataType, limit);
           case BYTES:
             return new RawBytesSingleColumnDistinctOnlyExecutor(expression, dataType, limit);
           default:
@@ -110,13 +117,9 @@ public class DistinctExecutorFactory {
       // Multiple columns
       int numExpressions = expressions.size();
       List<DataType> dataTypes = new ArrayList<>(numExpressions);
-      for (ExpressionContext expression : expressions) {
-        TransformResultMetadata expressionMetadata = transformOperator.getResultMetadata(expression);
-        // TODO: Support MV expression
-        Preconditions.checkArgument(expressionMetadata.isSingleValue(),
-            "DISTINCT cannot be applied to MV expression: %s", expression);
-        dataTypes.add(expressionMetadata.getDataType());
-      }
+      List<Boolean> isSingleValues = new ArrayList<>(numExpressions);
+      boolean containsSingleValue = false;
+
       List<Dictionary> dictionaries = new ArrayList<>(numExpressions);
       boolean dictionaryBased = true;
       for (ExpressionContext expression : expressions) {
@@ -128,12 +131,26 @@ public class DistinctExecutorFactory {
           break;
         }
       }
+
+      for (ExpressionContext expression : expressions) {
+        TransformResultMetadata expressionMetadata = transformOperator.getResultMetadata(expression);
+        // TODO: Support MV expression for dictionary case
+        if (dictionaryBased) {
+          Preconditions.checkArgument(expressionMetadata.isSingleValue(),
+              "bowenzhu DISTINCT cannot be applied to MV expression (of dictionary based column): %s", expression);
+        }
+
+        dataTypes.add(expressionMetadata.getDataType());
+        isSingleValues.add(expressionMetadata.isSingleValue());
+      }
+
       if (dictionaryBased) {
         // Dictionary based
         return new DictionaryBasedMultiColumnDistinctOnlyExecutor(expressions, dictionaries, dataTypes, limit);
       } else {
         // Raw value based
         return new RawMultiColumnDistinctExecutor(expressions, dataTypes, null, limit);
+        //return new RawMultiColumnDistinctExecutor(expressions, isSingleValues, dataTypes, null, limit);
       }
     }
   }
@@ -145,7 +162,8 @@ public class DistinctExecutorFactory {
       ExpressionContext expression = expressions.get(0);
       TransformResultMetadata expressionMetadata = transformOperator.getResultMetadata(expression);
       // TODO: Support MV expression
-      Preconditions.checkArgument(expressionMetadata.isSingleValue(), "DISTINCT cannot be applied to MV expression: %s",
+      Preconditions.checkArgument(expressionMetadata.isSingleValue(),
+          "bowenzhu DISTINCT cannot be applied to MV expression: %s",
           expression);
       DataType dataType = expressionMetadata.getDataType();
       assert orderByExpressions.size() == 1;
@@ -154,7 +172,7 @@ public class DistinctExecutorFactory {
       // Note: Use raw value based when dictionary is not sorted (consuming segments).
       if (dictionary != null && dictionary.isSorted()) {
         // Dictionary based
-        return new DictionaryBasedSingleColumnDistinctOrderByExecutor(expression, dictionary, dataType,
+        return new DictionaryBasedSingleColumnDistinctOrderByExecutor(expression, true, dictionary, dataType,
             orderByExpressions.get(0), limit);
       } else {
         // Raw value based
@@ -185,7 +203,7 @@ public class DistinctExecutorFactory {
         TransformResultMetadata expressionMetadata = transformOperator.getResultMetadata(expression);
         // TODO: Support MV expression
         Preconditions.checkArgument(expressionMetadata.isSingleValue(),
-            "DISTINCT cannot be applied to MV expression: %s", expression);
+            "bowenzhu DISTINCT cannot be applied to MV expression: %s", expression);
         dataTypes.add(expressionMetadata.getDataType());
       }
       List<Dictionary> dictionaries = new ArrayList<>(numExpressions);

@@ -38,25 +38,40 @@ abstract class BaseRawStringSingleColumnDistinctExecutor implements DistinctExec
   final ExpressionContext _expression;
   final DataType _dataType;
   final int _limit;
+  final boolean _isSingleValue;
 
   final ObjectSet<String> _valueSet;
 
-  BaseRawStringSingleColumnDistinctExecutor(ExpressionContext expression, DataType dataType, int limit) {
+  BaseRawStringSingleColumnDistinctExecutor(ExpressionContext expression,
+      boolean isSingleValue, DataType dataType, int limit) {
     _expression = expression;
     _dataType = dataType;
     _limit = limit;
+    _isSingleValue = isSingleValue;
 
     _valueSet = new ObjectOpenHashSet<>(Math.min(limit, MAX_INITIAL_CAPACITY));
   }
 
   @Override
   public DistinctTable getResult() {
-    DataSchema dataSchema = new DataSchema(new String[]{_expression.toString()},
-        new ColumnDataType[]{ColumnDataType.fromDataTypeSV(_dataType)});
-    List<Record> records = new ArrayList<>(_valueSet.size());
-    for (String value : _valueSet) {
-      records.add(new Record(new Object[]{value}));
-    }
-    return new DistinctTable(dataSchema, records);
+    //if (_isSingleValue){
+
+      DataSchema dataSchema = new DataSchema(new String[]{_expression.toString()},
+          new ColumnDataType[]{ColumnDataType.fromDataTypeSV(_dataType)});
+      List<Record> records = new ArrayList<>(_valueSet.size());
+      for (String value : _valueSet) {
+        records.add(new Record(new Object[]{value}));
+      }
+      return new DistinctTable(dataSchema, records);
+
+//    } else {
+//      DataSchema dataSchema = new DataSchema(new String[]{_expression.toString()},
+//          new ColumnDataType[]{ColumnDataType.fromDataType(_dataType, _isSingleValue)});
+//      List<Record> records = new ArrayList<>(_valueSet.size());
+//      for (String value : _valueSet) {
+//        records.add(new Record(new Object[]{value}));
+//      }
+//      return new DistinctTable(dataSchema, records);
+//    }
   }
 }

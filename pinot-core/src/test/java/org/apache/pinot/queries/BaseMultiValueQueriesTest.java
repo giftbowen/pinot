@@ -91,13 +91,16 @@ public abstract class BaseMultiValueQueriesTest extends BaseQueriesTest {
 
     // Build the segment schema.
     Schema schema = new Schema.SchemaBuilder().setSchemaName("testTable").addMetric("column1", FieldSpec.DataType.INT)
-        .addMetric("column2", FieldSpec.DataType.INT).addSingleValueDimension("column3", FieldSpec.DataType.STRING)
+        .addMetric("column2", FieldSpec.DataType.INT)
+        .addSingleValueDimension("column3", FieldSpec.DataType.STRING)
         .addSingleValueDimension("column5", FieldSpec.DataType.STRING)
         .addMultiValueDimension("column6", FieldSpec.DataType.INT)
         .addMultiValueDimension("column7", FieldSpec.DataType.INT)
-        .addSingleValueDimension("column8", FieldSpec.DataType.INT).addMetric("column9", FieldSpec.DataType.INT)
+        .addSingleValueDimension("column8", FieldSpec.DataType.INT)
+        .addMetric("column9", FieldSpec.DataType.INT)
         .addMetric("column10", FieldSpec.DataType.INT)
         .addTime(new TimeGranularitySpec(FieldSpec.DataType.INT, TimeUnit.DAYS, "daysSinceEpoch"), null).build();
+
     TableConfig tableConfig = new TableConfigBuilder(TableType.OFFLINE).setNoDictionaryColumns(Arrays.asList("column5"))
         .setTableName("testTable").setTimeColumnName("daysSinceEpoch").build();
 

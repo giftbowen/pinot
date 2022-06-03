@@ -39,13 +39,16 @@ abstract class BaseRawLongSingleColumnDistinctExecutor implements DistinctExecut
   final ExpressionContext _expression;
   final DataType _dataType;
   final int _limit;
+  final boolean _isSingleValue;
 
   final LongSet _valueSet;
 
-  BaseRawLongSingleColumnDistinctExecutor(ExpressionContext expression, DataType dataType, int limit) {
+  BaseRawLongSingleColumnDistinctExecutor(ExpressionContext expression,
+      boolean isSingleValue, DataType dataType, int limit) {
     _expression = expression;
     _dataType = dataType;
     _limit = limit;
+    _isSingleValue = isSingleValue;
 
     _valueSet = new LongOpenHashSet(Math.min(limit, MAX_INITIAL_CAPACITY));
   }

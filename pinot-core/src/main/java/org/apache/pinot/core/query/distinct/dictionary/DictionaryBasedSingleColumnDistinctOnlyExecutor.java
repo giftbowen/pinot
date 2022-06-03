@@ -31,20 +31,33 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
  */
 public class DictionaryBasedSingleColumnDistinctOnlyExecutor extends BaseDictionaryBasedSingleColumnDistinctExecutor {
 
-  public DictionaryBasedSingleColumnDistinctOnlyExecutor(ExpressionContext expression, Dictionary dictionary,
-      DataType dataType, int limit) {
-    super(expression, dictionary, dataType, limit);
+  public DictionaryBasedSingleColumnDistinctOnlyExecutor(ExpressionContext expression, boolean isSingleValue,
+      Dictionary dictionary, DataType dataType, int limit) {
+    super(expression, isSingleValue, dictionary, dataType, limit);
   }
 
   @Override
   public boolean process(TransformBlock transformBlock) {
     BlockValSet blockValueSet = transformBlock.getBlockValueSet(_expression);
-    int[] dictIds = blockValueSet.getDictionaryIdsSV();
     int numDocs = transformBlock.getNumDocs();
-    for (int i = 0; i < numDocs; i++) {
-      _dictIdSet.add(dictIds[i]);
-      if (_dictIdSet.size() >= _limit) {
-        return true;
+
+    if (_isSingleValue) {
+      int[] dictIds = blockValueSet.getDictionaryIdsSV();
+      for (int i = 0; i < numDocs; i++) {
+        _dictIdSet.add(dictIds[i]);
+        if (_dictIdSet.size() >= _limit) {
+          return true;
+        }
+      }
+    } else {
+      int[][] dictIds = blockValueSet.getDictionaryIdsMV();
+      for (int i = 0; i < numDocs; i++) {
+        for (int j = 0; j < dictIds[i].length; j++) {
+          _dictIdSet.add(dictIds[i][j]);
+        }
+        if (_dictIdSet.size() >= _limit) {
+          return true;
+        }
       }
     }
     return false;

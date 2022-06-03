@@ -36,9 +36,9 @@ public class DictionaryBasedSingleColumnDistinctOrderByExecutor
     extends BaseDictionaryBasedSingleColumnDistinctExecutor {
   private final IntPriorityQueue _priorityQueue;
 
-  public DictionaryBasedSingleColumnDistinctOrderByExecutor(ExpressionContext expression, Dictionary dictionary,
-      DataType dataType, OrderByExpressionContext orderByExpressionContext, int limit) {
-    super(expression, dictionary, dataType, limit);
+  public DictionaryBasedSingleColumnDistinctOrderByExecutor(ExpressionContext expression, boolean isSingleValue,
+      Dictionary dictionary, DataType dataType, OrderByExpressionContext orderByExpressionContext, int limit) {
+    super(expression, isSingleValue, dictionary, dataType, limit);
 
     assert orderByExpressionContext.getExpression().equals(expression);
     int comparisonFactor = orderByExpressionContext.isAsc() ? -1 : 1;
