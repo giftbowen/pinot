@@ -49,7 +49,7 @@ public class QuickstartRunner {
   private static final int DEFAULT_CONTROLLER_PORT = 9000;
   private static final int DEFAULT_BROKER_PORT = 8000;
   private static final int DEFAULT_SERVER_ADMIN_API_PORT = 7500;
-  private static final int DEFAULT_SERVER_NETTY_PORT = 7000;
+  private static final int DEFAULT_SERVER_NETTY_PORT = 7001;
   private static final int DEFAULT_MINION_PORT = 6000;
 
   private static final String DEFAULT_ZK_DIR = "PinotZkDir";

@@ -30,21 +30,36 @@ import org.apache.pinot.spi.data.FieldSpec.DataType;
  */
 public class RawLongSingleColumnDistinctOnlyExecutor extends BaseRawLongSingleColumnDistinctExecutor {
 
-  public RawLongSingleColumnDistinctOnlyExecutor(ExpressionContext expression, DataType dataType, int limit) {
-    super(expression, dataType, limit);
+  public RawLongSingleColumnDistinctOnlyExecutor(ExpressionContext expression,
+      boolean isSingleValue, DataType dataType, int limit) {
+    super(expression, isSingleValue, dataType, limit);
   }
 
   @Override
   public boolean process(TransformBlock transformBlock) {
     BlockValSet blockValueSet = transformBlock.getBlockValueSet(_expression);
-    long[] values = blockValueSet.getLongValuesSV();
     int numDocs = transformBlock.getNumDocs();
-    for (int i = 0; i < numDocs; i++) {
-      _valueSet.add(values[i]);
-      if (_valueSet.size() >= _limit) {
-        return true;
+
+    if (_isSingleValue) {
+      long[] values = blockValueSet.getLongValuesSV();
+      for (int i = 0; i < numDocs; i++) {
+        _valueSet.add(values[i]);
+        if (_valueSet.size() >= _limit) {
+          return true;
+        }
+      }
+    } else {
+      long[][] values = blockValueSet.getLongValuesMV();
+      for (int i = 0; i < numDocs; i++) {
+        for (int j = 0; j < values[i].length; j++) {
+          _valueSet.add(values[i][j]);
+        }
+        if (_valueSet.size() >= _limit) {
+          return true;
+        }
       }
     }
+
     return false;
   }
 }

@@ -41,15 +41,17 @@ abstract class BaseDictionaryBasedSingleColumnDistinctExecutor implements Distin
   final Dictionary _dictionary;
   final DataType _dataType;
   final int _limit;
+  final boolean _isSingleValue;
 
   final IntSet _dictIdSet;
 
-  BaseDictionaryBasedSingleColumnDistinctExecutor(ExpressionContext expression, Dictionary dictionary,
-      DataType dataType, int limit) {
+  BaseDictionaryBasedSingleColumnDistinctExecutor(ExpressionContext expression, boolean isSingleValue,
+      Dictionary dictionary, DataType dataType, int limit) {
     _expression = expression;
     _dictionary = dictionary;
     _dataType = dataType;
     _limit = limit;
+    _isSingleValue = isSingleValue;
 
     _dictIdSet = new IntOpenHashSet(Math.min(limit, MAX_INITIAL_CAPACITY));
   }

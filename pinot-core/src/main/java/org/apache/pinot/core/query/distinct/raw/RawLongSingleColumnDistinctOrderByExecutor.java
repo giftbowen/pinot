@@ -36,7 +36,7 @@ public class RawLongSingleColumnDistinctOrderByExecutor extends BaseRawLongSingl
 
   public RawLongSingleColumnDistinctOrderByExecutor(ExpressionContext expression, DataType dataType,
       OrderByExpressionContext orderByExpression, int limit) {
-    super(expression, dataType, limit);
+    super(expression, false, dataType, limit);
 
     assert orderByExpression.getExpression().equals(expression);
     int comparisonFactor = orderByExpression.isAsc() ? -1 : 1;
